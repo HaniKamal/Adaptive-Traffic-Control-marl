@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="amman.net.xml"/>
+        <route-files value="amman.rou.xml"/>
+    </input>
+    <time-to-teleport value="-1"/>
+    <scale value= '2.5'/>
+    <time> 
+    <begin value="0"/> 
+    <end value="3900"/> 
+    </time>
+    <output>
+        <tripinfo-output value="amman.tripinfo.xml"/>
+        <device.emissions.probability value = '1.0'/>
+
+    </output>
+
+</configuration>
