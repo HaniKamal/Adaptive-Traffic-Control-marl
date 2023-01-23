@@ -10,7 +10,8 @@ class TrafficEnv:
             self.sumoBinary = checkBinary('sumo-gui')
         else:
             self.sumoBinary = checkBinary('sumo')
-        self.sumoCmd = [self.sumoBinary, "-c", './scenario/amman.sumocfg', '--no-step-log', '-W']
+        self.sumoCmd = [self.sumoBinary, "-c",
+                        './scenario/amman.sumocfg', '--no-step-log', '-W']
 
         self.time = None
         self.decision_time = 10
@@ -47,7 +48,8 @@ class TrafficEnv:
             if actions[i] == current_action:
                 continue
             else:
-                traci.trafficlight.setPhase(intersection_ID, actions[i])  # switch to next phase after yellow light
+                # switch to next phase after yellow light
+                traci.trafficlight.setPhase(intersection_ID, actions[i])
 
     def step(self, actions):
         self.apply_action(actions)

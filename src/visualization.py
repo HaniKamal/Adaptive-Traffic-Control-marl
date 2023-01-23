@@ -8,8 +8,8 @@ from utils import get_average_travel_time
 if __name__ == "__main__":
 
     # Before the start, you should check SUMO_HOME is in your environment variables
-    if 'SUMO_HOME' in os.environ:
-        tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
+    if "SUMO_HOME" in os.environ:
+        tools = os.path.join(os.environ["SUMO_HOME"], "tools")
         sys.path.append(tools)
     else:
         sys.exit("please declare environment variable 'SUMO_HOME'")
@@ -17,14 +17,14 @@ if __name__ == "__main__":
     # Hyperparameters
     state_dim = 10
     action_dim = 2
-    n_agents = 4
+    n_agents = 2
 
     # Create an Environment and RL Agent
-    env = TrafficEnv('gui')
+    env = TrafficEnv("gui")
     agent = MADDPG(n_agents, state_dim, action_dim)
 
     # Load your trained RL Agent
-    agent.load_model("results/trained_model.th")
+    agent.load_model("results/trained_model100.th")
     agent.eps = 0.0
 
     # Visualize your RL agent
@@ -49,4 +49,4 @@ if __name__ == "__main__":
             break
 
     env.close()
-    print(get_average_travel_time())
+    print(f"Average_Travel_Time = {round(get_average_travel_time(), 2)} sec")

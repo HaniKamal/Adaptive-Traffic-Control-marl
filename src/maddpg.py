@@ -11,7 +11,8 @@ import torch.nn.functional as F
 
 def update_model(source, target, tau):
     for source_param, target_param in zip(source.parameters(), target.parameters()):
-        target_param.data.copy_(tau * source_param.data + (1.0 - tau) * target_param.data)
+        target_param.data.copy_(
+            tau * source_param.data + (1.0 - tau) * target_param.data)
 
 
 class Actor(nn.Module):
@@ -111,8 +112,10 @@ class MADDPG(nn.Module):
         self.step = 0
 
     def init_actors(self):
-        self.actors = nn.ModuleList([Actor(self.obs_dim, self.action_dim) for _ in range(self.n_agents)])
-        self.target_actors = nn.ModuleList([Actor(self.obs_dim, self.action_dim) for _ in range(self.n_agents)])
+        self.actors = nn.ModuleList(
+            [Actor(self.obs_dim, self.action_dim) for _ in range(self.n_agents)])
+        self.target_actors = nn.ModuleList(
+            [Actor(self.obs_dim, self.action_dim) for _ in range(self.n_agents)])
         for i in range(self.n_agents):
             update_model(self.actors[i], self.target_actors[i], tau=1.0)
 
@@ -125,8 +128,10 @@ class MADDPG(nn.Module):
             update_model(self.critics[i], self.target_critics[i], tau=1.0)
 
     def init_optimizers(self):
-        self.actor_optimizers = [optim.Adam(self.actors[i].parameters(), lr=self.lr) for i in range(self.n_agents)]
-        self.critic_optimizers = [optim.Adam(self.critics[i].parameters(), lr=self.lr) for i in range(self.n_agents)]
+        self.actor_optimizers = [optim.Adam(
+            self.actors[i].parameters(), lr=self.lr) for i in range(self.n_agents)]
+        self.critic_optimizers = [optim.Adam(
+            self.critics[i].parameters(), lr=self.lr) for i in range(self.n_agents)]
 
     def select_action(self, obs, i):
         obs = torch.from_numpy(obs).float()
@@ -150,26 +155,30 @@ class MADDPG(nn.Module):
     def train_start(self):
         return len(self.memory) >= self.batch_size
 
-    def train_model(self, i): # only update agent i's network
-        states, actions, next_states, rewards, dones = self.memory.sample(self.batch_size)
+    def train_model(self, i):  # only update agent i's network
+        states, actions, next_states, rewards, dones = self.memory.sample(
+            self.batch_size)
 
-        # make target q values 
+        # make target q values
         current_q = self.critics[i](states, actions)
         next_actions = []
-        [ next_actions.append(self.actors[i](next_states.view(self.batch_size,-1,self.obs_dim)[:,i])) for _ in range(self.n_agents) ] # Each actor considers only its own state.
+        [next_actions.append(self.actors[i](next_states.view(self.batch_size, -1, self.obs_dim)[:, i]))
+         for _ in range(self.n_agents)]  # Each actor considers only its own state.
         next_actions = torch.hstack(next_actions)
         next_q = self.target_critics[i](next_states, next_actions).detach()
-        target_q = rewards[:,i].view(self.batch_size, 1) + self.gamma * (1.0 - dones) * next_q
-        
+        target_q = rewards[:, i].view(
+            self.batch_size, 1) + self.gamma * (1.0 - dones) * next_q
+
         # update critic network with MSE loss
         value_loss = self.mse_loss(target_q, current_q)
         self.critic_optimizers[i].zero_grad()
         value_loss.backward()
         self.critic_optimizers[i].step()
-        
+
         # update actor network
         actions = []
-        [ actions.append(self.actors[i](states.view(self.batch_size,-1,self.obs_dim)[:,i])) for _ in range(self.n_agents) ]
+        [actions.append(self.actors[i](states.view(
+            self.batch_size, -1, self.obs_dim)[:, i])) for _ in range(self.n_agents)]
         actions = torch.hstack(actions)
 
         policy_loss = -self.critics[i](states, actions).mean()
@@ -177,8 +186,8 @@ class MADDPG(nn.Module):
         policy_loss.backward()
         self.actor_optimizers[i].step()
 
-        # update target network 
-        update_model(self.actors[i], self.target_actors[i], self.tau)        
+        # update target network
+        update_model(self.actors[i], self.target_actors[i], self.tau)
         update_model(self.critics[i], self.target_critics[i], self.tau)
 
         return policy_loss.item(), value_loss.item()
